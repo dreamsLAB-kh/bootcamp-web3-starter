@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My First dApp</title>
+    <style>
+      body {
+        text-align: center;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      div {
+        width: 20rem;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      input[type="text"] {
+        margin: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        background-color: #f1f1f1;
+      }
+
+      button {
+        margin: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        background-color: #f1f1f1;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #e1e1e1;
+      }
+
+      .form {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem 0;
+        background: #d4d4d4;
+        border-radius: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>This is my dApp!</h1>
+      <p>Here we can set or get the mood:</p>
+      <div class="form">
+        <label for="mood">Input Mood:</label>
+        <input type="text" id="mood" />
+        <button onclick="setMood()">Set Mood</button>
+      </div>
+
+      <button onclick="getMood()">Get Mood</button>
+      <div>
+        <p id="current">Current Mood is:</p>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+      type="application/javascript"
+    ></script>
+
+    <script>
+      // Public address of the contract for testing on Goerli testnet
+      const MoodContractAddress = "0xF53673829503C22716600B04415ff6fBB24747b4";
+      // ABI of the contract
+      const MoodContractABI = [
+        {
+          inputs: [],
+          name: "getMood",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_mood",
+              type: "string",
+            },
+          ],
+          name: "setMood",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ];
+
+      const provider = new ethers.providers.Web3Provider(
+        window.ethereum,
+        "goerli"
+      );
+
+      let MoodContract;
+      let signer;
+
+      provider.send("eth_requestAccounts", []).then(() => {
+        provider.listAccounts().then((accounts) => {
+          signer = provider.getSigner(accounts[0]);
+          MoodContract = new ethers.Contract(
+            MoodContractAddress,
+            MoodContractABI,
+            signer
+          );
+        });
+      });
+
+      async function getMood() {
+        const getMoodPromise = MoodContract.getMood();
+        const Mood = await getMoodPromise;
+
+        document.getElementById(
+          "current"
+        ).innerHTML = `Current Mood is: ${Mood}`;
+      }
+
+      async function setMood() {
+        const mood = document.getElementById("mood").value;
+        const setMoodPromise = MoodContract.setMood(mood);
+        await setMoodPromise;
+      }
+    </script>
+  </body>
+</html>
